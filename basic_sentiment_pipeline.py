@@ -12,6 +12,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
 import sys
 import re
+import string
 
 # Hint: These are not actually used in the current
 # pipeline, but would be used in an alternative
@@ -34,8 +35,10 @@ def tokenizer(text):
     Preprocessor for cleaning input data. Removes HTML tags.
 """
 def preprocessor(text):
-    regex = re.compile(r'<.*?>')
-    return regex.sub(' ', text)
+    regex_html = re.compile(r'<.*?>')
+    regex_punc = re.compile(r'[\.!\?,"/\\\[\]]')
+    # regex_punc = re.compile('[%s]' % re.escape(string.punctuation))
+    return regex_punc.sub('', regex_html.sub(' ', text))
 
 
 # Read in the dataset and store in a pandas dataframe
@@ -55,8 +58,12 @@ y_train = df.loc[:training_size, 'sentiment'].values
 X_test = df.loc[training_size:, 'review'].values
 y_test = df.loc[training_size:, 'sentiment'].values
 
-# print('Before preprocessing: %s' % X_train[0])
-# print('After preprocessing: %s' % preprocessor(X_train[0]))
+# print('Before preprocessing:\n %s\n' % X_train[0])
+# print('After preprocessing:\n %s\n' % preprocessor(X_train[0]))
+
+# print('Before tokenization:\n %s\n' % X_train[0])
+# print('After tokenization:\n')
+# print(', '.join(tokenizer(preprocessor(X_train[0]))))
 
 # Perform feature extraction on the text.
 # Hint: Perhaps there are different preprocessors to
@@ -67,8 +74,8 @@ y_test = df.loc[training_size:, 'sentiment'].values
 tfidf = TfidfVectorizer(strip_accents=None,
                         lowercase=True,
                         preprocessor=preprocessor,
-                        # analyzer='word',
-                        tokenizer=None,
+                        analyzer='word',
+                        # tokenizer=tokenizer,
                         stop_words=None)
 
 # Hint: There are methods to perform parameter sweeps to find the
