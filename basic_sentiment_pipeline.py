@@ -11,6 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
 import sys
+import re
 
 # Hint: These are not actually used in the current
 # pipeline, but would be used in an alternative
@@ -29,6 +30,14 @@ stop = stopwords.words('english')
 def tokenizer(text):
     return text.split()
 
+"""
+    Preprocessor for cleaning input data. Removes HTML tags.
+"""
+def preprocessor(text):
+    regex = re.compile(r'<.*?>')
+    return regex.sub(' ', text)
+
+
 # Read in the dataset and store in a pandas dataframe
 df = pd.read_csv('./training_movie_data.csv')
 
@@ -46,12 +55,21 @@ y_train = df.loc[:training_size, 'sentiment'].values
 X_test = df.loc[training_size:, 'review'].values
 y_test = df.loc[training_size:, 'sentiment'].values
 
+# print('Before preprocessing: %s' % X_train[0])
+# print('After preprocessing: %s' % preprocessor(X_train[0]))
+
 # Perform feature extraction on the text.
 # Hint: Perhaps there are different preprocessors to
 # test?
+# tfidf = TfidfVectorizer(strip_accents=None,
+#                         lowercase=False,
+#                         preprocessor=None)
 tfidf = TfidfVectorizer(strip_accents=None,
-                        lowercase=False,
-                        preprocessor=None)
+                        lowercase=True,
+                        preprocessor=preprocessor,
+                        # analyzer='word',
+                        tokenizer=None,
+                        stop_words=None)
 
 # Hint: There are methods to perform parameter sweeps to find the
 # best combination of parameters.  Look towards GridSearchCV in
@@ -62,7 +80,7 @@ tfidf = TfidfVectorizer(strip_accents=None,
 # Look to documentation on Regression or similar methods for hints.
 # Possibly investigate alternative classifiers for text/sentiment.
 lr_tfidf = Pipeline([('vect', tfidf),
-                     ('clf', LogisticRegression(C=3.900,fit_intercept=False,penalty='l1',random_state=0))])
+                     ('clf', LogisticRegression(C=4.5,fit_intercept=False,penalty='l2',random_state=0))])
 
 # Train the pipline using the training set.
 lr_tfidf.fit(X_train, y_train)
