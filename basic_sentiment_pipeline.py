@@ -31,10 +31,14 @@ stop = stopwords.words('english')
 """
 def snowball(text):
     tokens = text.split()
-    stemmer = SnowballStemmer("english")
+    stemmer = SnowballStemmer("english", ignore_stopwords=True)
     return [stemmer.stem(token) for token in tokens]
 
 
+"""
+    There is a bug in nltk 3.2.2 (default version) that breaks PorterStemmer.
+    Revert to 3.2.1 or just stick with SnowballStemmer
+"""
 def porter(text):
     tokens = text.split()
     stemmer = PorterStemmer()
@@ -71,9 +75,9 @@ y_test = df.loc[training_size:, 'sentiment'].values
 # print('Before preprocessing:\n %s\n' % X_train[0])
 # print('After preprocessing:\n %s\n' % preprocessor(X_train[0]))
 
-print('Before tokenization:\n %s\n' % X_train[0])
-print('After tokenization:\n')
-print(', '.join(porter(preprocessor(X_train[0]))))
+# print('Before tokenization:\n %s\n' % X_train[0])
+# print('After tokenization:\n')
+# print(', '.join(porter(preprocessor(X_train[0]))))
 
 # Perform feature extraction on the text.
 # Hint: Perhaps there are different preprocessors to
@@ -85,7 +89,7 @@ tfidf = TfidfVectorizer(strip_accents=None,
                         lowercase=True,
                         preprocessor=preprocessor,
                         analyzer='word',
-                        tokenizer=porter,
+                        tokenizer=None,
                         stop_words=None)
 
 # Hint: There are methods to perform parameter sweeps to find the
