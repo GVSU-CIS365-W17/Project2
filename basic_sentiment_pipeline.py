@@ -13,6 +13,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import sys
 import re
 import string
+from nltk.stem import *
 
 # Hint: These are not actually used in the current
 # pipeline, but would be used in an alternative
@@ -28,8 +29,17 @@ stop = stopwords.words('english')
     Hint: Perhaps implement others such as PorterStemming
     Hint: Is this even used?  Where would you place it?
 """
-def tokenizer(text):
-    return text.split()
+def snowball(text):
+    tokens = text.split()
+    stemmer = SnowballStemmer("english")
+    return [stemmer.stem(token) for token in tokens]
+
+
+def porter(text):
+    tokens = text.split()
+    stemmer = PorterStemmer()
+    return [stemmer.stem(token) for token in tokens]
+
 
 """
     Preprocessor for cleaning input data. Removes HTML tags.
@@ -37,7 +47,7 @@ def tokenizer(text):
 def preprocessor(text):
     regex_html = re.compile(r'<.*?>')
     regex_punc = re.compile(r'[\.!\?,"/\\\[\]]')
-    # regex_punc = re.compile('[%s]' % re.escape(string.punctuation))
+    # regex_punc = re.compile(r'[^\w\s\d\']')
     return regex_punc.sub('', regex_html.sub(' ', text))
 
 
@@ -61,9 +71,9 @@ y_test = df.loc[training_size:, 'sentiment'].values
 # print('Before preprocessing:\n %s\n' % X_train[0])
 # print('After preprocessing:\n %s\n' % preprocessor(X_train[0]))
 
-# print('Before tokenization:\n %s\n' % X_train[0])
-# print('After tokenization:\n')
-# print(', '.join(tokenizer(preprocessor(X_train[0]))))
+print('Before tokenization:\n %s\n' % X_train[0])
+print('After tokenization:\n')
+print(', '.join(porter(preprocessor(X_train[0]))))
 
 # Perform feature extraction on the text.
 # Hint: Perhaps there are different preprocessors to
@@ -75,7 +85,7 @@ tfidf = TfidfVectorizer(strip_accents=None,
                         lowercase=True,
                         preprocessor=preprocessor,
                         analyzer='word',
-                        # tokenizer=tokenizer,
+                        tokenizer=porter,
                         stop_words=None)
 
 # Hint: There are methods to perform parameter sweeps to find the
