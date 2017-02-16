@@ -7,9 +7,13 @@
 
 import pandas as pd
 import pickle
+from pprint import pprint
+from time import time
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import GridSearchCV
+from sklearn.feature_extraction.text import CountVectorizer
 import sys
 import re
 import string
@@ -58,6 +62,17 @@ y_train = df.loc[:training_size, 'sentiment'].values
 X_test = df.loc[training_size:, 'review'].values
 y_test = df.loc[training_size:, 'sentiment'].values
 
+
+xtrain = open("xtrain.txt",'w')
+ytrain = open("ytrain.txt",'w')
+xtest = open("xtest.txt", 'w')
+ytest = open("ytest.txt",'w')
+
+pprint(X_train, stream=xtrain)
+pprint(y_train, stream=ytrain)
+pprint(X_test, stream=xtest)
+pprint(y_test, stream=ytest)
+#exit()
 # print('Before preprocessing:\n %s\n' % X_train[0])
 # print('After preprocessing:\n %s\n' % preprocessor(X_train[0]))
 
@@ -81,16 +96,57 @@ tfidf = TfidfVectorizer(strip_accents=None,
 # Hint: There are methods to perform parameter sweeps to find the
 # best combination of parameters.  Look towards GridSearchCV in
 # sklearn or other model selection strategies.
-
+#tuned_parameters = 
 # Create a pipeline to vectorize the data and then perform regression.
 # Hint: Are there other options to add to this process?
 # Look to documentation on Regression or similar methods for hints.
 # Possibly investigate alternative classifiers for text/sentiment.
-lr_tfidf = Pipeline([('vect', tfidf),
-                     ('clf', LogisticRegression(C=4.5,fit_intercept=False,penalty='l2',random_state=0))])
+#lr_tfidf = Pipeline([('vect', tfidf),
+#                     ('clf', LogisticRegression(C=4.5,fit_intercept=False,penalty='l2',random_state=0))])
 
+
+lr_tfidf = Pipeline([
+    ('vect', TfidfVectorizer()),
+    #('tfidf', TfidfTransformer()),
+    ('clf', LogisticRegression()),
+])
+
+parameters = {
+    'vect__max_df': (0.5, 0.75, 1.0),
+    'vect__max_features': (None, 5000, 10000, 50000),
+    'vect__ngram_range': ((1, 1), (1, 2)),  # unigrams or bigrams
+    #'tfidf__use_idf': (True, False),
+    #'tfidf__norm': ('l1', 'l2'),
+    'clf__C': (0.5,1,1.5,2,2.5,3,3.5,4,4.5,5),
+    'clf__penalty': ('l2', 'l1'),
+    #'clf__dual': (True, False),
+    'clf__fit_intercept': (True, False),
+}
+
+
+grid_search = GridSearchCV(lr_tfidf, parameters, n_jobs=-1, verbose=0)
+
+print("Performing grid search...")
+print("pipeline:", [name for name, _ in lr_tfidf.steps])
+print("parameters:")
+pprint(parameters)
+t0 = time()
+grid_search.fit(X_train, y_train)
+print("done in %0.3fs" % (time() - t0))
+print()
+
+print("Best parameters set:")
+best_parameters = grid_search.best_estimator_.get_params()
+for param_name in sorted(parameters.keys()):
+    print("\t%s: %r" % (param_name, best_parameters[param_name]))
+
+
+#gscv = GridSearchCV(lr_tfidf, tuned_parameters, cv=5, scoring=pipScore()
 # Train the pipline using the training set.
 lr_tfidf.fit(X_train, y_train)
+
+def pipScore(pipeline):
+	return pipeline.score(X_test, y_test)
 
 # Print the Test Accuracy
 print('Test Accuracy: %.4f' % lr_tfidf.score(X_test, y_test))
