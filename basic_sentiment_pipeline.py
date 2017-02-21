@@ -107,16 +107,11 @@ tfidf = TfidfVectorizer(strip_accents=None,
                         lowercase=True,
                         preprocessor=preprocessor,
                         analyzer='word',
-<<<<<<< HEAD
-                        tokenizer=None,
-                        stop_words=None)
-=======
                         # tokenizer=tokenizer,
                         stop_words=None,
-			max_df=0.75,
-			max_features=50000,
-			ngram_range=(1,2),)
->>>>>>> dev-tanner
+			            max_df=0.75,
+			            max_features=50000,
+			            ngram_range=(1,2),)
 
 # Hint: There are methods to perform parameter sweeps to find the
 # best combination of parameters.  Look towards GridSearchCV in
