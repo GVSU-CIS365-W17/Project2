@@ -5,12 +5,12 @@ Team LowDash: Mark Jannenga, Tanner Gibson, Sierra Ellison
 
 Trains a logistic regression model for document classification.
 Significant changes made to the starter code are:
-    -preprocessor: defined at line 72, used at line 158
-    -GridSearchCV: defined at line 88, used at line 171
-    -k-fold cross validation: defined and used at line 186
+    -preprocessor: defined at line 76, used at line 160
+    -GridSearchCV: defined at line 92, used at line 175
+    -k-fold cross validation: defined and used at line 190
 
-Other changes include changes to parameters at lines 156 and 177,
-and stemmers defined at lines 40 and 56 but unused
+Other changes include changes to parameters at lines 160 and 181,
+and stemmers defined at lines 44 and 60 but unused
 """
 
 import pandas as pd
@@ -23,6 +23,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer
 import re
+import string
+from pprint import pprint
+from time import time
+from sklearn.model_selection import GridSearchCV
 from nltk.stem import *
 from sklearn.model_selection import KFold
 
@@ -95,8 +99,8 @@ def do_gridsearch(X_train, y_train):
     :return:
     """
     lr_tfidf = Pipeline([
-            ('vect', TfidfVectorizer()),
-            ('clf', LogisticRegression()),
+        ('vect', TfidfVectorizer()),
+        ('clf', LogisticRegression()),
     ])
 
     parameters = {
@@ -183,18 +187,21 @@ lr_tfidf = Pipeline([
 ])
 
 # Train the pipline using the training set.
-kf = KFold(n_splits=10)
+accuracy = 0.0
+kf = KFold(n_splits=5)
 for train_index, test_index in kf.split(X_values):
-    print("train_index: ", train_index, "test_index: ", test_index)
+    # print("train_index: ", train_index, "test_index: ", test_index)
     X_train = df.loc[train_index, 'review'].values
     y_train = df.loc[train_index, 'sentiment'].values
     X_test = df.loc[test_index, 'review'].values
     y_test = df.loc[test_index, 'sentiment'].values
     lr_tfidf.fit(X_train, y_train)
-    print('Test Accuracy: %.4f' % lr_tfidf.score(X_test, y_test))
+    score = lr_tfidf.score(X_test, y_test)
+    accuracy += score
+    print('Test Accuracy: %.4f' % score)
 
 # Print the Test Accuracy
-print('Test Accuracy: %.4f' % lr_tfidf.score(X_test, y_test))
+print('Test Accuracy: %.4f' % (float(accuracy) / 5))
 
 # Save the classifier for use later.
 pickle.dump(lr_tfidf, open("saved_model.sav", 'wb'))
